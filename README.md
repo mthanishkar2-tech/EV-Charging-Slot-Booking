@@ -30,6 +30,11 @@ This project simulates booking and managing EV charging stations.
 This project uses pre-defined data for simulation.
 Future updates will include database integration.
 
+## 📸 Screenshots
+
+![Home](EV Scheduler ss1.png)
+![Booking](EV Scheduler ss2.png)
+
 ---
 
 ## 👨‍💻 Author
