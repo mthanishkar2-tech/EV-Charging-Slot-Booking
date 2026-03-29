@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>EV Charging Scheduler</title>
+  <link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"/>
+</head>
+
+<body>
+
+<nav class="navbar">
+  <a href="/" class="nav-brand">
+    <div class="nav-logo">⚡</div>
+    <span class="nav-title">EV <span>Charging</span> Scheduler</span>
+  </a>
+
+  <div class="nav-links">
+    <a href="/" class="nav-link active">Dashboard</a>
+    <a href="/manage" class="nav-link">Manage Booking</a>
+    <a href="/admin" class="nav-link">Admin</a>
+  </div>
+</nav>
+
+<main class="container">
+
+  <section class="hero">
+    <p class="hero-eyebrow">⚡ Smart Load-Balanced EV Network</p>
+    <h1>Book Your <span class="highlight">Charging Slot</span> Instantly</h1>
+    <p class="hero-sub">Real-time availability across 5 stations. OTP-secured bookings. Auto load balancing.</p>
+  </section>
+
+  {% set total_avail = stations|sum(attribute='available') %}
+  {% set total_occ   = stations|sum(attribute='occupied') %}
+  {% set full_count  = stations|selectattr('is_full')|list|length %}
+
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-value">{{ stations|length }}</div>
+      <div class="stat-label">Stations</div>
+    </div>
+
+    <div class="stat-item">
+      <div class="stat-value">{{ total_avail }}</div>
+      <div class="stat-label">Available</div>
+    </div>
+
+    <div class="stat-item">
+      <div class="stat-value">{{ total_occ }}</div>
+      <div class="stat-label">Occupied</div>
+    </div>
+
+    <div class="stat-item">
+      <div class="stat-value">{{ full_count }}</div>
+      <div class="stat-label">Full</div>
+    </div>
+
+    <div class="stat-item">
+      <div class="stat-value">8</div>
+      <div class="stat-label">Slots/Station</div>
+    </div>
+  </div>
+
+  <p class="section-title">⚡ Charging Stations</p>
+
+  <div class="cards-grid">
+    {% for s in stations %}
+    <div class="station-card {% if s.is_full %}full{% endif %}">
+
+      <div class="card-header">
+        <div class="card-icon">
+          {% if s.is_full %}🔴{% else %}⚡{% endif %}
+        </div>
+
+        <div class="card-title-block">
+          <div class="card-name">{{ s.name }}</div>
+          <div class="card-location">📍 {{ s.location }}</div>
+        </div>
+
+        <span class="status-badge {% if s.is_full %}badge-full{% else %}badge-available{% endif %}">
+          {% if s.is_full %}Full{% else %}Open{% endif %}
+        </span>
+      </div>
+
+      <!-- LOAD BAR -->
+      <div class="load-bar-wrap">
+        <div class="load-bar-labels">
+          <span>Load</span>
+          <span>{{ s.load_pct }}%</span>
+        </div>
+
+        <!-- FIXED LINE -->
+        <div class="load-bar-track">
+          <div class="load-bar-fill" data-width="{{ s.load_pct }}"></div>
+        </div>
+      </div>
+
+      <!-- SLOT VISUAL -->
+      <div class="slot-dots">
+        {% for slot, info in s.slots.items() %}
+          <div class="slot-dot {% if info.booked %}taken{% endif %}"
+               title="{{ slot }} — {% if info.booked %}Booked{% else %}Free{% endif %}">
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- FOOTER -->
+      <div class="card-footer">
+        <div class="slot-counts">
+          <strong>{{ s.available }}</strong> free ·
+          <strong class="occ">{{ s.occupied }}</strong> taken
+        </div>
+
+        {% if s.is_full %}
+          <a href="{{ url_for('booking',sid=s.id) }}" class="btn btn-disabled btn-sm">⚠ Full</a>
+        {% else %}
+          <a href="{{ url_for('booking',sid=s.id) }}" class="btn btn-primary btn-sm">⚡ Book Slot</a>
+        {% endif %}
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+
+</main>
+
+<footer>
+  EV Charging Scheduler · Built with Flask ·
+  <a href="/admin">Admin Panel</a> ·
+  <a href="/reset">Reset Demo</a>
+</footer>
+
+<!-- JAVASCRIPT FIX (IMPORTANT) -->
+<script>
+document.querySelectorAll('.load-bar-fill').forEach(el => {
+  el.style.width = el.getAttribute('data-width') + '%';
+});
+</script>
+
+</body>
+</html>

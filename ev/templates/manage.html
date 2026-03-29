@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Manage Booking</title>
+  <link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"/>
+</head>
+
+<body>
+
+<nav class="navbar">
+  <a href="/" class="nav-brand">
+    <div class="nav-logo">⚡</div>
+    <span class="nav-title">EV <span>Charging</span> Scheduler</span>
+  </a>
+
+  <div class="nav-links">
+    <a href="/" class="nav-link">Dashboard</a>
+    <a href="/manage" class="nav-link active">Manage Booking</a>
+    <a href="/admin" class="nav-link">Admin</a>
+  </div>
+</nav>
+
+<main class="container">
+
+  <div class="page-header">
+    <a href="/" class="back-link">← Back to Dashboard</a>
+    <h1 class="page-title">Manage Your Booking</h1>
+    <p class="page-subtitle">
+      Enter your OTP to view, modify, or cancel your booking.
+    </p>
+  </div>
+
+  <div class="manage-wrap">
+
+    <!-- OTP SEARCH -->
+    <div class="manage-search">
+      <h2>🔑 Enter Your OTP</h2>
+
+      {% if error %}
+        <div class="flash-error">{{ error }}</div>
+      {% endif %}
+
+      <form method="POST" action="/manage">
+        <div class="otp-search-row">
+          <input class="form-input"
+                 type="text"
+                 name="otp"
+                 placeholder="e.g. 483920"
+                 maxlength="6"
+                 value="{{ otp or '' }}"
+                 required/>
+
+          <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+      </form>
+    </div>
+
+    {% if booking %}
+
+    <!-- BOOKING DETAILS -->
+    <div class="booking-detail-card">
+      <h3>Booking Details</h3>
+
+      <div class="booking-header">
+
+        <span class="otp-display">
+          OTP: <strong class="otp-value">{{ otp }}</strong>
+        </span>
+
+        <!-- SAFE STATUS -->
+        <span class="status-pill status-{{ booking.status|lower if booking.status else 'unknown' }}">
+          {% if booking.status == 'Booked' %}📋
+          {% elif booking.status == 'Active' %}⚡
+          {% elif booking.status == 'Completed' %}✅
+          {% elif booking.status == 'Cancelled' %}❌
+          {% else %}❓
+          {% endif %}
+          {{ booking.status }}
+        </span>
+
+      </div>
+
+      <div class="confirm-details">
+
+        <div class="confirm-row">
+          <span>👤 Name</span>
+          <span>{{ booking.name }}</span>
+        </div>
+
+        <div class="confirm-row">
+          <span>⚡ Station</span>
+          <span>{{ booking.station_name }}</span>
+        </div>
+
+        <div class="confirm-row">
+          <span>📍 Location</span>
+          <span>{{ booking.location }}</span>
+        </div>
+
+        <div class="confirm-row">
+          <span>🕐 Time Slot</span>
+          <span>{{ booking.slot }}</span>
+        </div>
+
+        <div class="confirm-row">
+          <span>🔋 Charge</span>
+          <span>{{ booking.charge_kwh }} kWh</span>
+        </div>
+
+        <div class="confirm-row">
+          <span>💰 Total Cost</span>
+          <span class="cost-value">₹{{ booking.total_cost }}</span>
+        </div>
+
+        <div class="confirm-row">
+          <span>✏️ Modifications</span>
+          <span>{{ booking.modifications }} / {{ max_mods }}</span>
+        </div>
+
+        <div class="confirm-row">
+          <span>📅 Booked At</span>
+          <span>{{ booking.booked_at }}</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+
+    {% if booking.status == 'Booked' %}
+
+    <!-- START CHARGING -->
+    <div class="booking-detail-card">
+      <h3>⚡ Start Charging</h3>
+
+      <form method="POST" action="/start_charging">
+        <input type="hidden" name="otp" value="{{ otp }}"/>
+        <button type="submit" class="btn btn-primary">Start Charging</button>
+      </form>
+    </div>
+
+    <!-- MODIFY -->
+    {% if booking.modifications < max_mods %}
+
+    <div class="booking-detail-card">
+      <h3>✏️ Modify Booking</h3>
+
+      <!-- SLOT CHANGE -->
+      <form method="POST" action="/modify_booking">
+        <input type="hidden" name="otp" value="{{ otp }}"/>
+        <input type="hidden" name="mod_type" value="slot"/>
+
+        <label for="new_slot">Select Time Slot:</label>
+        <select id="new_slot" name="new_slot" class="form-select">
+          {% for slot in time_slots %}
+            <option value="{{ slot }}"
+              {% if slot == booking.slot %}selected{% endif %}>
+              {{ slot }}
+            </option>
+          {% endfor %}
+        </select>
+
+        <button type="submit" class="btn btn-info">Change Slot</button>
+      </form>
+
+      <!-- KWH CHANGE -->
+      <form method="POST" action="/modify_booking" class="modify-form">
+        <input type="hidden" name="otp" value="{{ otp }}"/>
+        <input type="hidden" name="mod_type" value="kwh"/>
+
+        <label for="new_kwh">Select Charge Amount:</label>
+        <select id="new_kwh" name="new_kwh" class="form-select">
+          {% for kwh in charge_options %}
+            <option value="{{ kwh }}"
+              {% if kwh == booking.charge_kwh %}selected{% endif %}>
+              {{ kwh }} kWh
+            </option>
+          {% endfor %}
+        </select>
+
+        <button type="submit" class="btn btn-info">Update</button>
+      </form>
+
+    </div>
+
+    {% else %}
+    <div class="alert alert-warn">
+      No modifications left
+    </div>
+    {% endif %}
+
+    <!-- CANCEL -->
+    <div class="booking-detail-card">
+      <h3>❌ Cancel Booking</h3>
+
+      <form method="POST" action="/cancel_booking"
+            onsubmit="return confirm('Are you sure you want to cancel?')">
+        <input type="hidden" name="otp" value="{{ otp }}"/>
+        <button type="submit" class="btn btn-danger">Cancel Booking</button>
+      </form>
+    </div>
+
+    {% elif booking.status == 'Active' %}
+
+    <div class="alert alert-success">
+      Charging in progress...
+    </div>
+
+    <form method="POST" action="/complete_charging">
+      <input type="hidden" name="otp" value="{{ otp }}"/>
+      <button type="submit" class="btn btn-primary">Complete</button>
+    </form>
+
+    {% elif booking.status == 'Completed' %}
+
+    <div class="alert alert-success">
+      Charging completed successfully
+    </div>
+
+    {% elif booking.status == 'Cancelled' %}
+
+    <div class="alert alert-warn">
+      Booking cancelled
+    </div>
+
+    {% endif %}
+
+    {% endif %}
+
+  </div>
+
+</main>
+
+<footer>
+  EV Charging Scheduler · Built with Flask
+</footer>
+
+</body>
+</html>

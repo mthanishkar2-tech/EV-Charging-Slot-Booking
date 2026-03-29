@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Admin Panel</title>
+  <link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"/>
+</head>
+<body>
+<nav class="navbar">
+  <a href="/" class="nav-brand"><div class="nav-logo">⚡</div><span class="nav-title">EV <span>Charging</span> Scheduler</span></a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">Dashboard</a>
+    <a href="/manage" class="nav-link">Manage Booking</a>
+    <a href="/admin" class="nav-link active">Admin</a>
+  </div>
+</nav>
+
+<main class="container">
+  <div class="page-header">
+    <a href="/" class="back-link">← Back to Dashboard</a>
+    <h1 class="page-title">Admin Panel</h1>
+    <p class="page-subtitle">All bookings and revenue overview.</p>
+  </div>
+
+  <div class="admin-wrap">
+
+    <!-- Stats -->
+    <div class="admin-stats">
+      <div class="admin-stat-card">
+        <div class="admin-stat-val" style="color:var(--accent)">{{ total }}</div>
+        <div class="admin-stat-label">Total Bookings</div>
+      </div>
+      <div class="admin-stat-card">
+        <div class="admin-stat-val" style="color:var(--accent2)">{{ counts.Booked }}</div>
+        <div class="admin-stat-label">Booked</div>
+      </div>
+      <div class="admin-stat-card">
+        <div class="admin-stat-val" style="color:var(--accent)">{{ counts.Active }}</div>
+        <div class="admin-stat-label">Active</div>
+      </div>
+      <div class="admin-stat-card">
+        <div class="admin-stat-val" style="color:var(--muted)">{{ counts.Completed }}</div>
+        <div class="admin-stat-label">Completed</div>
+      </div>
+      <div class="admin-stat-card">
+        <div class="admin-stat-val" style="color:var(--warn)">{{ counts.Cancelled }}</div>
+        <div class="admin-stat-label">Cancelled</div>
+      </div>
+      <div class="admin-stat-card">
+        <div class="admin-stat-val" style="color:var(--accent)">₹{{ revenue }}</div>
+        <div class="admin-stat-label">Revenue</div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    {% if bookings %}
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>OTP</th><th>Name</th><th>Station</th><th>Slot</th>
+            <th>kWh</th><th>Cost</th><th>Status</th><th>Mods</th><th>Booked At</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for otp, b in bookings.items() %}
+          <tr>
+            <td><span class="otp-chip">{{ otp }}</span></td>
+            <td>{{ b.name }}</td>
+            <td>{{ b.station_name }}</td>
+            <td style="font-family:'DM Mono',monospace;font-size:.8rem">{{ b.slot }}</td>
+            <td>{{ b.charge_kwh }}</td>
+            <td style="color:var(--accent)">₹{{ b.total_cost }}</td>
+            <td><span class="status-pill status-{{ b.status|lower }}">{{ b.status }}</span></td>
+            <td style="text-align:center">{{ b.modifications }}/2</td>
+            <td style="font-size:.75rem;color:var(--muted)">{{ b.booked_at }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+      <div class="alert-title">No bookings yet</div>
+      <div class="alert-body">Bookings will appear here once users start booking slots.</div>
+    </div>
+    {% endif %}
+
+  </div>
+</main>
+
+<footer>EV Charging Scheduler · Built with Flask · <a href="/reset">Reset Demo Data</a></footer>
+</body>
+</html>

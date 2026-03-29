@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Book Slot — {{ station.name }}</title>
+  <link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"/>
+</head>
+<body>
+<nav class="navbar">
+  <a href="/" class="nav-brand"><div class="nav-logo">⚡</div><span class="nav-title">EV <span>Charging</span> Scheduler</span></a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">Dashboard</a>
+    <a href="/manage" class="nav-link">Manage Booking</a>
+    <a href="/admin" class="nav-link">Admin</a>
+  </div>
+</nav>
+
+<main class="container">
+  <div class="page-header">
+    <a href="/" class="back-link">← Back to Dashboard</a>
+    <h1 class="page-title">{{ station.name }}</h1>
+    <p class="page-subtitle">📍 {{ station.location }}</p>
+  </div>
+
+  {% if is_full %}
+    <div class="alert alert-warn">
+      <div class="alert-title">⚠️ This station is fully booked</div>
+      <div class="alert-body">All 8 time slots are reserved right now.</div>
+    </div>
+    {% if suggestion %}
+    <div class="alert alert-info">
+      <div class="alert-title">🔄 Load Balancing — Nearest Available Station</div>
+      <div class="alert-body">
+        <strong>{{ suggestion.name }}</strong> at <strong>{{ suggestion.location }}</strong> has
+        <strong>{{ suggestion.slots.values()|rejectattr('booked')|list|length }}</strong> open slot(s).
+      </div>
+      <div class="alert-action">
+        <a href="{{ url_for('booking',sid=suggestion.id) }}" class="btn btn-primary">⚡ Book at {{ suggestion.name }}</a>
+      </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warn">
+      <div class="alert-title">😔 All stations are currently full</div>
+      <div class="alert-body">Please try again during off-peak hours.</div>
+    </div>
+    {% endif %}
+    <a href="/" class="btn btn-secondary">← Return to Dashboard</a>
+
+  {% else %}
+  <div class="booking-layout">
+    <!-- LEFT: Form -->
+    <div>
+      <form action="{{ url_for('confirm_booking') }}" method="POST" id="bookForm">
+        <input type="hidden" name="station_id" value="{{ station.id }}"/>
+
+        <div class="form-card" style="margin-bottom:1rem">
+          <h2>① Select Time Slot</h2>
+          <div class="timeslot-grid">
+            {% for slot, info in station.slots.items() %}
+            <div>
+              <input class="timeslot-option" type="radio" id="s{{ loop.index }}" name="time_slot" value="{{ slot }}" {% if info.booked %}disabled{% else %}required{% endif %}/>
+              <label class="timeslot-label" for="s{{ loop.index }}">
+                <span class="timeslot-time">{{ slot }}</span>
+                <span class="timeslot-status">{% if info.booked %}🔴 Booked{% else %}🟢 Available{% endif %}</span>
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-card" style="margin-bottom:1rem">
+          <h2>② Choose Charge Amount</h2>
+          <div class="charge-grid">
+            {% for kwh in charge_options %}
+            <div>
+              <input class="charge-option" type="radio" id="c{{ kwh }}" name="charge_kwh" value="{{ kwh }}" required/>
+              <label class="charge-label" for="c{{ kwh }}">
+                <span class="charge-kwh">{{ kwh }}</span>
+                <span class="charge-cost">kWh</span>
+                <span class="charge-cost">₹{{ kwh * cost_per_kwh }}</span>
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="cost-preview">
+            <span class="cost-label">💰 Estimated Cost</span>
+            <span class="cost-amount" id="costDisplay">Select kWh</span>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <h2>③ Your Details</h2>
+          <div class="form-group">
+            <label class="form-label" for="user_name">Your Name</label>
+            <input class="form-input" type="text" id="user_name" name="user_name" placeholder="e.g. Arjun Kumar" maxlength="50" required/>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full" id="submitBtn" disabled>⚡ Confirm Booking & Get OTP</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- RIGHT: Info -->
+    <div class="info-panel">
+      <div class="info-card">
+        <div class="info-card-title">Station Info</div>
+        <div class="info-row"><span class="info-key">Station</span><span class="info-val">{{ station.name }}</span></div>
+        <div class="info-row"><span class="info-key">Location</span><span class="info-val">{{ station.location }}</span></div>
+        <div class="info-row"><span class="info-key">Total Slots</span><span class="info-val">8</span></div>
+        <div class="info-row"><span class="info-key">Available</span><span class="info-val green">{{ available }}</span></div>
+        <div class="info-row"><span class="info-key">Occupied</span><span class="info-val red">{{ occupied }}</span></div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-card-title">Pricing</div>
+        {% for kwh in charge_options %}
+        <div class="info-row">
+          <span class="info-key">{{ kwh }} kWh</span>
+          <span class="info-val blue">₹{{ kwh * cost_per_kwh }}</span>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="info-card" style="background:rgba(0,229,160,.05);border-color:rgba(0,229,160,.15)">
+        <div class="info-card-title" style="color:var(--accent)">🔑 How OTP Works</div>
+        <p style="font-size:.82rem;color:var(--muted);line-height:1.7">
+          After booking you'll receive a unique 6-digit OTP.<br><br>
+          Use it to: <strong style="color:var(--text)">start charging, modify your slot, or cancel</strong> your booking anytime.
+        </p>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</main>
+
+<footer>EV Charging Scheduler · Built with Flask</footer>
+
+<script>
+  const radios   = document.querySelectorAll('input[name="time_slot"]');
+  const charges  = document.querySelectorAll('input[name="charge_kwh"]');
+  const btn      = document.getElementById('submitBtn');
+  const costDisp = document.getElementById('costDisplay');
+
+  const rate = "{{ cost_per_kwh | tojson }}";
+
+  let slotOk = false, kwhOk = false;
+
+  radios.forEach(r => r.addEventListener('change', () => {
+    slotOk = true;
+    check();
+  }));
+
+  charges.forEach(c => c.addEventListener('change', () => {
+    kwhOk = true;
+    if (costDisp) costDisp.textContent = '₹' + (parseFloat(c.value) * rate).toFixed(2);
+    check();
+  }));
+
+  function check() {
+    if (btn) btn.disabled = !(slotOk && kwhOk);
+  }
+</script>
+</body>
+</html>

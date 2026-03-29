@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Booking Confirmed!</title>
+  <link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"/>
+</head>
+
+<body>
+
+<nav class="navbar">
+  <a href="/" class="nav-brand">
+    <div class="nav-logo">⚡</div>
+    <span class="nav-title">EV <span>Charging</span> Scheduler</span>
+  </a>
+
+  <div class="nav-links">
+    <a href="/" class="nav-link">Dashboard</a>
+    <a href="/manage" class="nav-link">Manage Booking</a>
+    <a href="/admin" class="nav-link">Admin</a>
+  </div>
+</nav>
+
+<div class="confirm-wrap">
+
+  <div class="confirm-card">
+
+    <div class="confirm-icon">✅</div>
+
+    <h1 class="confirm-title">Booking Confirmed!</h1>
+
+    <p class="confirm-subtitle">
+      Save your OTP — you'll need it to manage your session.
+    </p>
+
+    <!-- OTP -->
+    <div class="otp-box">
+      <div class="otp-label">Your Unique OTP</div>
+      <div class="otp-value">{{ otp }}</div>
+      <div class="otp-hint">
+        ⚠️ Save this! Use it to start, modify or cancel your booking.
+      </div>
+    </div>
+
+    <!-- DETAILS -->
+    {% if booking %}
+    <div class="confirm-details">
+
+      <div class="confirm-row">
+        <span class="confirm-row-key">👤 Name</span>
+        <span class="confirm-row-val">{{ booking.name }}</span>
+      </div>
+
+      <div class="confirm-row">
+        <span class="confirm-row-key">⚡ Station</span>
+        <span class="confirm-row-val">{{ booking.station_name }}</span>
+      </div>
+
+      <div class="confirm-row">
+        <span class="confirm-row-key">📍 Location</span>
+        <span class="confirm-row-val">{{ booking.location }}</span>
+      </div>
+
+      <div class="confirm-row">
+        <span class="confirm-row-key">🕐 Time Slot</span>
+        <span class="confirm-row-val">{{ booking.slot }}</span>
+      </div>
+
+      <div class="confirm-row">
+        <span class="confirm-row-key">🔋 Charge</span>
+        <span class="confirm-row-val">{{ booking.charge_kwh }} kWh</span>
+      </div>
+
+      <div class="confirm-row">
+        <span class="confirm-row-key">💰 Total Cost</span>
+        <span class="confirm-row-val" style="color:green">
+          ₹{{ booking.total_cost }}
+        </span>
+      </div>
+
+      <div class="confirm-row">
+        <span class="confirm-row-key">📅 Booked At</span>
+        <span class="confirm-row-val">{{ booking.booked_at }}</span>
+      </div>
+
+    </div>
+    {% endif %}
+
+    <!-- ACTIONS -->
+    <div class="confirm-actions">
+      <a href="/manage" class="btn btn-primary">🔑 Manage Booking</a>
+      <a href="/" class="btn btn-secondary">← Dashboard</a>
+    </div>
+
+  </div>
+
+</div>
+
+<footer>
+  EV Charging Scheduler · Built with Flask
+</footer>
+
+</body>
+</html>
