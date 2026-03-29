@@ -30,20 +30,21 @@ This project simulates booking and managing EV charging stations.
 
 ---
 
-▶️ How to Run
-Install Python
-Install Flask
-Run:
+##▶️ How to Run
+
+• Install Python  
+• Install Flask  
+• Run:  
 python app.py
-Open:
+• Open:  
 http://127.0.0.1:5000
 
 ---
 
-📁 Project Structure
-app.py → main backend
-templates/ → frontend HTML
-static/ → CSS files
+##📁 Project Structure
+• app.py → main backend
+• templates/ → frontend HTML
+• static/ → CSS files
 
 ## ⚠️ Note
 
