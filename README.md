@@ -5,6 +5,8 @@
 ![Home](EV-Scheduler-ss1.png)
 ![Booking](EV-Scheduler-ss2.png)
 
+---
+
 ## 📌 Description
 
 A web-based EV charging slot booking system built using Flask, HTML, and CSS.
@@ -30,21 +32,24 @@ This project simulates booking and managing EV charging stations.
 
 ---
 
-##▶️ How to Run
+## ▶️ How to Run
 
-• Install Python  
-• Install Flask  
-• Run:  
-python app.py
-• Open:  
-http://127.0.0.1:5000
+* Install Python
+* Install Flask
+* Run:
+  python app.py
+* Open:
+  http://127.0.0.1:5000
 
 ---
 
-##📁 Project Structure
-• app.py → main backend
-• templates/ → frontend HTML
-• static/ → CSS files
+## 📁 Project Structure
+
+* app.py → main backend
+* templates/ → frontend HTML
+* static/ → CSS files
+
+---
 
 ## ⚠️ Note
 
